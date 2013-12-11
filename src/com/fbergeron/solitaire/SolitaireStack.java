@@ -28,7 +28,7 @@ import com.fbergeron.card.*;
  * @author <A HREF="http://javasol.sourceforge.net">http://javasol.sourceforge.ne</A>
  * @version Version 1.0
  */
-class SolitaireStack extends Stack {
+public class SolitaireStack extends Stack {
     /**
      * Allows to push card on the stack only if it obeys the rules of solitaire game.
      * @return <CODE>true</CODE>, if it's allowed.

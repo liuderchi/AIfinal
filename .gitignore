@@ -1,4 +1,4 @@
-tag
+*.tar.gz
 *.class
 
 # Package Files #

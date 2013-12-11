@@ -28,7 +28,7 @@ import com.fbergeron.card.*;
  * @author <A HREF="http://javasol.sourceforge.net">http://javasol.sourceforge.net</A>
  * @version Version 1.0
  */
-class SequentialStack extends Stack {
+public class SequentialStack extends Stack {
     /**
      * Allows to push card on the stack only if it obeys the rules of solitaire game
      * for a sequential stack.

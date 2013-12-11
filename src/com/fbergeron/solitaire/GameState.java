@@ -405,6 +405,16 @@ public class GameState {
     public String toString() {
         return( gameInfo.toString() );
     }
+    public Stack getRevealedCards(){
+        return revealedCards;
+    }
+    public SolitaireStack[] getSolStack(){
+    	return solStack;
+    }
+    public SequentialStack[] getSeqStack(){
+    	return seqStack;
+    }
+    
 
     protected   GameInfo            gameInfo;
     protected   ClassicDeck         deck;

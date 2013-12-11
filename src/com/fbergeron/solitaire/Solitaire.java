@@ -18,24 +18,46 @@
  */
 package com.fbergeron.solitaire;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.applet.*;
-import java.io.*;
-import java.net.*;
-import java.text.*;
+import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.CheckboxMenuItem;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.MenuItem;
+import java.awt.MenuShortcut;
+import java.awt.Point;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Locale;
 import java.util.Random;
 import java.util.ResourceBundle;
 
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-
-import com.fbergeron.card.*;
-import com.fbergeron.util.*;
+import com.fbergeron.ai.AI;
+import com.fbergeron.card.ClassicCard;
+import com.fbergeron.card.ClassicDeck;
+import com.fbergeron.card.Stack;
+import com.fbergeron.util.DialogMsg;
+import com.fbergeron.util.FrameAbout;
+import com.fbergeron.util.WindowManager;
 
 /** Java version of the famous card game.
  * @author Frederic Bergeron
@@ -51,7 +73,7 @@ public class Solitaire extends Frame
     public static final int SOL_STACK_CNT = 7;
 
     /** Number of cards freed from the deck when requested. */
-    public static final int FREED_CARDS_CNT = 3;
+    public static final int FREED_CARDS_CNT = 1;
 
     public static final Point DECK_POS              = new Point( 5, 5 );
     public static final Point REVEALED_CARDS_POS    = new Point( DECK_POS.x + ClassicCard.DEFAULT_WIDTH + 5, 5 );
@@ -198,6 +220,7 @@ public class Solitaire extends Frame
 
         setupWinnable();
         newGame();
+		AImove();
         setVisible( true );
     }
 
@@ -298,8 +321,9 @@ public class Solitaire extends Frame
         // Get a random seed according to the game type
         gameInfo.setSeed( -1 );
         Random aRandom = new Random();
-        if (gameInfo.getType().equals(GameInfo.WINNABLE_EASY))
+        if (gameInfo.getType().equals(GameInfo.WINNABLE_EASY)){
             gameInfo.setSeed( easyGames[aRandom.nextInt(easyGames.length)] );
+		}
         if (gameInfo.getType().equals(GameInfo.WINNABLE_NORMAL))
             gameInfo.setSeed( normalGames[aRandom.nextInt(normalGames.length)] );
         if (gameInfo.getType().equals(GameInfo.WINNABLE_HARD))
@@ -307,8 +331,11 @@ public class Solitaire extends Frame
         if (gameInfo.getType().equals(GameInfo.WINNABLE_TRICKY))
             gameInfo.setSeed( trickyGames[aRandom.nextInt(trickyGames.length)] );
 
-        if( gameInfo.getSeed() == -1 )
-            gameInfo.setSeed( aRandom.nextInt(1000000) );
+        if( gameInfo.getSeed() == -1 ){
+			gameInfo.setSeed(17);
+//			gameInfo.setSeed(300);
+//            gameInfo.setSeed( aRandom.nextInt(1000000) );
+		}
         deck = new ClassicDeck( table );
         deck.shuffle( gameInfo.getSeed() );
         deck.setLocation( DECK_POS.x, DECK_POS.y );
@@ -334,9 +361,12 @@ public class Solitaire extends Frame
         currStack.setSpreadingDirection( Stack.SPREAD_SOUTH );
         currStack.setSpreadingDelta( 20 );
 
-        distributeCards();
+       distributeCards();
         if( table != null )
             table.repaint();
+       GameState gs = new GameState( gameInfo, deck, revealedCards, solStack, seqStack );
+       ai = new AI(gs);
+       ai.getEval();
     }
 
     /**
@@ -390,6 +420,7 @@ public class Solitaire extends Frame
             
             // Flag which cards can be moved legally
             GameState gs = new GameState( gameInfo, deck, revealedCards, solStack, seqStack );
+            ai.getEval(gs);
             legalGs = gs.legalMoves( false );
             
             if( isGameWon() )
@@ -522,12 +553,14 @@ public class Solitaire extends Frame
                         for( int i = 0; i < SOL_STACK_CNT && src == null; i++ ) {
                             if( !solStack[ i ].isEmpty() && solStack[ i ].contains( p ) ) {
                                 src = solStack[ i ];
+								System.out.println("Sol SourceStack:"+src);
                                 c = ((ClassicCard)src.getClickedCard( p ));
                             }
                         }
                         for( int i = 0; i < SEQ_STACK_CNT && src == null; i++ ) {
                             if( !seqStack[ i ].isEmpty() && seqStack[ i ].contains( p ) ) {
                                 src = seqStack[ i ];
+								System.out.println("Seq SourceStack:"+src);
                                 c = ((ClassicCard)src.top());
                             }
                         }
@@ -543,6 +576,7 @@ public class Solitaire extends Frame
                         currStack = src.pop( c );
                         currStack.reverse();
                         curr = currStack;
+						System.out.println("currentStack"+curr);
                     }
                 }
             }
@@ -552,12 +586,16 @@ public class Solitaire extends Frame
             Point p = e.getPoint();
 
             for( int i = 0; i < SOL_STACK_CNT && dst == null; i++ ) {
-                if( solStack[ i ].contains( p ) )
+                if( solStack[ i ].contains( p ) ){
                     dst = solStack[ i ];
+					System.out.println("Sol DestinationStack:"+dst);
+				}
             }
             for( int i = 0; i < SEQ_STACK_CNT && dst == null; i++ ) {
-                if( seqStack[ i ].contains( p ) )
+                if( seqStack[ i ].contains( p ) ){
                     dst = seqStack[ i ];
+					System.out.println("Seq DestinationStack:"+dst);
+				}
             }
             if( curr != null && src != null )
                 play( curr, src, dst );
@@ -1128,6 +1166,90 @@ public class Solitaire extends Frame
         };
 
     }  
+	public void AImove(){
+//		System.out.println(solStack[5]);
+//		curr = 
+//		getNewCards();	
+//
+/**     seed number = 17*/
+		moveCardsSol(0,1,1);
+		moveCardsSol(1,2,4);
+		moveCardsSol(4,3,0);
+		getNewCards();
+		getNewCards();
+		getNewCards();
+		getNewCards();
+		getNewCards();
+		moveCardsSeq(-1);
+/**     seed number = 300*/
+		moveCardsSeq(1);
+		
+	}
+	public void moveCardsSol(int srcNum,int num,int dstNum){
+		Stack src = solStack[srcNum];
+		Stack dst = solStack[dstNum];
+		Stack curr = src.pop(num);
+		curr.reverse();
+		System.out.println("Source:"+src);
+		System.out.println("Current:"+curr);
+		System.out.println("Destination:"+dst);
+		play(curr,src,dst);
+	}
+	public void moveCardsSeq(int srcNum){
+		Stack src=null;
+		Stack curr=null;
+		Stack dst=null;
+		if(srcNum==-1){
+			src = revealedCards;
+			curr = src.pop(1);
+			curr.reverse();
+			char suit = ((ClassicCard)curr.top()).getSuit().toString().charAt(0);
+//			System.out.println(((ClassicCard)curr.top()).getSuit());
+			switch(suit){
+				case 'H':
+					dst = seqStack[0];
+					break;
+				case 'S':
+					dst = seqStack[1];
+					break;
+				case 'D':
+					dst = seqStack[2];
+					break;
+				case 'C':
+					dst = seqStack[3];
+					break;
+			}
+			System.out.println("Source:"+src);
+			System.out.println("Current:"+curr);
+			System.out.println("Destination:"+dst);
+			play(curr,src,dst);
+		}
+		else{
+			src = solStack[srcNum];
+			curr = src.pop(1);
+			curr.reverse();
+			char suit = ((ClassicCard)curr.top()).getSuit().toString().charAt(0);
+//			System.out.println(((ClassicCard)curr.top()).getSuit());
+			switch(suit){
+				case 'H':
+					dst = seqStack[0];
+					break;
+				case 'S':
+					dst = seqStack[1];
+					break;
+				case 'D':
+					dst = seqStack[2];
+					break;
+				case 'C':
+					dst = seqStack[3];
+					break;
+			}
+			System.out.println("Source:"+src);
+			System.out.println("Current:"+curr);
+			System.out.println("Destination:"+dst);
+			play(curr,src,dst);
+		}
+	}
            
     //protected   Image               backgroundImage;
     protected   Stack               currStack;
@@ -1173,5 +1295,7 @@ public class Solitaire extends Frame
 
     private FrameAbout          frameAbout;
     private FrameRules          frameRules;
+    
+    private AI					ai;
 }
 
