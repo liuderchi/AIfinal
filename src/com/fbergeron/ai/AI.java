@@ -26,6 +26,8 @@ public class AI{
 		SequentialStack[] seqStack = gs.getSeqStack();
         ClassicCard card1;
         ClassicCard card2;
+		int eval = 0;
+        int minDist = 14;
 		for(SolitaireStack s1:solStack){
             card1 = (ClassicCard)s1.top();
             System.out.println(card1);
@@ -35,7 +37,6 @@ public class AI{
             }
             
 		}
-		int eval = 0;
 		System.out.println("eval = "+ eval);
 		return eval;
 	}
