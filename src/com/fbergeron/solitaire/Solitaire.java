@@ -220,7 +220,7 @@ public class Solitaire extends Frame
 
         setupWinnable();
         newGame();
-		AImove();
+//		AImove();
         setVisible( true );
     }
 

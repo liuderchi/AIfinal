@@ -4,6 +4,7 @@ import com.fbergeron.card.Stack;
 import com.fbergeron.solitaire.GameState;
 import com.fbergeron.solitaire.SequentialStack;
 import com.fbergeron.solitaire.SolitaireStack;
+import com.fbergeron.card.ClassicCard;
 
 public class AI{
 	private GameState currState;
@@ -23,19 +24,18 @@ public class AI{
 		Stack revealedCards = gs.getRevealedCards();
 		SolitaireStack[] solStack = gs.getSolStack();
 		SequentialStack[] seqStack = gs.getSeqStack();
-		/*
-		for(SolitaireStack s:solStack){
-			System.out.println(s.cardCount() + ","+ s.firstFaceUp());
+        ClassicCard card1;
+        ClassicCard card2;
+		for(SolitaireStack s1:solStack){
+            card1 = (ClassicCard)s1.top();
+            System.out.println(card1);
+            for(SolitaireStack s2:solStack){
+                card2 = (ClassicCard)s2.top();
+                System.out.println(card2);
+            }
+            
 		}
-		System.out.println("======");
-		for(SequentialStack s:seqStack){
-			System.out.println(s.cardCount() + ","+ s.firstFaceUp());
-		}
-		*/
 		int eval = 0;
-		for(SolitaireStack s:solStack){
-			eval += s.firstFaceUp();
-		}
 		System.out.println("eval = "+ eval);
 		return eval;
 	}
